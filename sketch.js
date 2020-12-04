@@ -265,20 +265,30 @@ let sketch = (p) => {
     
 
     p.draw = function() {
-        p.image(backgroundGraphics, 0, 0, p.width, p.height);
+        // backgroundGraphics = p.createGraphics(1334, 650);
+        // backgroundGraphics.colorMode(p.HSB, 360, 100, 100, 100);
+        // backgroundGraphics.clear();
+        // backgroundGraphics.background(0);
+        // backgroundGraphics.image(p.backgroundImg, 0, 0, 1334, 650);
+        p.clear();
+        p.image(p.backgroundImg, 0, 0, 1334, 650);
+
         let agentCounts = p.getCountries().map((c) => { return c.places.map((place) => {return p.getPlaces()[p.createVector(place.points[0], place.points[1])].agents.length}).reduce((acc, cur) => acc + cur, 0)});
-        // for (let i = 0; i < countries.length; i++) {
-        //     let country = countries[i];
-        //     let agentCount = agentCounts[i];
-        //     let im = countryImages[country.iso_a3];
-        //     if (im !== undefined) {
-        //         let alpha = agentCount / agentParams.agentSize * 255;
-        //         backgroundGraphics.tint(255, alpha); 
-        //         backgroundGraphics.image(im, country.offsetX, country.offsetY - im.height + 5, im.width, im.height);
-        //     }
+        for (let i = 0; i < countries.length; i++) {
+            let country = countries[i];
+            let agentCount = agentCounts[i];
+            let im = countryImages[country.iso_a3];
+            if (im !== undefined) {
+                let alpha = agentCount / agentParams.agentSize * 255;
+                p.tint(255, alpha); 
+                // p.image(im, country.offsetX, country.offsetY - im.height + 5, im.width, im.height);
+                p.image(im, country.offsetX, (country.offsetY) - im.height + 5, im.width, im.height);
+                // backgroundGraphics.tint(255, alpha); 
+                // backgroundGraphics.image(im, country.offsetX, country.offsetY - im.height + 5, im.width, im.height);
+            }
                 
-        // }
-        backgroundGraphics.tint(255, 255); 
+        }
+        // backgroundGraphics.tint(255, 255); 
         p.push();
         // applyMatrix(
         //     1, 0, 
