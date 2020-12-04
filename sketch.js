@@ -38,12 +38,15 @@ let sketch = (p) => {
     let agentCreateMode = 2; // 0 - random location or 1 = choose a country or 2 = choose a place
     let placePopCutoff = 100000;
     let countryCurrent;
+    let countryPrev;
     let isRunning = true;
 
     let countries = [];
     let countryImages = {};
     let backgroundImg;
     let backgroundGraphics;
+    let countriesGraphics;
+    let historyGraphics;
 
     let params = {
         r: 500
@@ -81,33 +84,42 @@ let sketch = (p) => {
                 this.angle = p.random(0, p.TAU);
             }
         };
-        Agent.prototype.draw = function () {
+        Agent.prototype.drawHistory = function () {
             var a = 50;
             var l = this.trail.length;
             if (this.isInfected) {
-                p.fill(0, 80, 80, a);
-                backgroundGraphics.fill(0, 80, 80, 10);
+                historyGraphics.fill(0, 80, 80, 100);
             }
             else {
-                p.fill(120, 80, 80, a);
-                backgroundGraphics.fill(120, 80, 80, 10);
+                historyGraphics.fill(120, 80, 80, 100);
             }
                 
-            p.noStroke();
-            p.ellipse(this.position.x, this.position.y, 5, 5);
             if (viralOptions.showTrail == 'path') {
-                backgroundGraphics.noStroke();
-                backgroundGraphics.ellipse(this.position.x, this.position.y, 1, 1);
+                historyGraphics.noStroke();
+                historyGraphics.ellipse(this.position.x, this.position.y, 1, 1);
             }
             else if (viralOptions.showTrail == 'tail') {
                 for (var i = this.trail.length - 2; i >= 0; i--) {
                     var t = this.trail[i];
                     var r = i / l;
-                    backgroundGraphics.noStroke();
-                    backgroundGraphics.ellipse(t.x, t.y, 1);
+                    historyGraphics.noStroke();
+                    historyGraphics.ellipse(t.x, t.y, 1);
                 }
             }
-        };
+        };        
+        Agent.prototype.draw = function () {
+            var a = 50;
+            var l = this.trail.length;
+            if (this.isInfected) {
+                p.fill(0, 80, 80, a);
+            }
+            else {
+                p.fill(120, 80, 80, a);
+            }
+                
+            p.noStroke();
+            p.ellipse(this.position.x, this.position.y, 5, 5);
+        };        
         return Agent;
     }());
     var PlaceAgent = (function () {
@@ -175,32 +187,41 @@ let sketch = (p) => {
             // if (this.trail.length >= 10)
             //     this.trail.shift();
         };
-        PlaceAgent.prototype.draw = function () {
+        PlaceAgent.prototype.drawHistory = function () {
             var a = 50;
             var l = this.trail.length;
             if (this.isInfected) {
-                p.fill(0, 80, 80, a);
-                backgroundGraphics.fill(0, 80, 80, 10);
+                historyGraphics.fill(0, 80, 80, a);
             }
             else {
-                p.fill(120, 80, 80, a);
-                backgroundGraphics.fill(120, 80, 80, 10);
+                historyGraphics.fill(120, 80, 80, a);
             }
                 
-            p.noStroke();
-            p.ellipse(this.position.x, this.position.y, 5, 5);
             if (viralOptions.showTrail == 'path') {
-                backgroundGraphics.noStroke();
-                backgroundGraphics.ellipse(this.position.x, this.position.y, 1, 1);
+                historyGraphics.noStroke();
+                historyGraphics.ellipse(this.position.x, this.position.y, 1, 1);
             }
             else if (viralOptions.showTrail == 'tail') {
                 for (var i = this.trail.length - 2; i >= 0; i--) {
                     var t = this.trail[i];
                     var r = i / l;
-                    backgroundGraphics.noStroke();
-                    backgroundGraphics.ellipse(t.x, t.y, 1);
+                    historyGraphics.noStroke();
+                    historyGraphics.ellipse(t.x, t.y, 1);
                 }
             }
+        };        
+        PlaceAgent.prototype.draw = function () {
+            var a = 50;
+            var l = this.trail.length;
+            if (this.isInfected) {
+                p.fill(0, 80, 80, a);
+            }
+            else {
+                p.fill(120, 80, 80, a);
+            }
+                
+            p.noStroke();
+            p.ellipse(this.position.x, this.position.y, 5, 5);
         };        
         return PlaceAgent;
     }());
@@ -237,11 +258,18 @@ let sketch = (p) => {
     
     p.setup = () => {
 
+        backgroundGraphics = p.createGraphics(1334, 650);
+        backgroundGraphics.colorMode(p.HSB, 360, 100, 100, 100);
+
+        countriesGraphics = p.createGraphics(1334, 650);
+        countriesGraphics.colorMode(p.HSB, 360, 100, 100, 100);
+
+        historyGraphics = p.createGraphics(1334, 650);
+        historyGraphics.colorMode(p.HSB, 360, 100, 100, 100);
+
         div = p.canvas.parentElement;
         p.createCanvas(div.clientWidth, div.clientHeight);
         
-        backgroundGraphics = p.createGraphics(1334, 650);
-        backgroundGraphics.colorMode(p.HSB, 360, 100, 100, 100);
 
         // Calculate big radius
         bigRadius = p.height / 3.0;
@@ -265,13 +293,8 @@ let sketch = (p) => {
     
 
     p.draw = function() {
-        // backgroundGraphics = p.createGraphics(1334, 650);
-        // backgroundGraphics.colorMode(p.HSB, 360, 100, 100, 100);
-        // backgroundGraphics.clear();
-        // backgroundGraphics.background(0);
-        // backgroundGraphics.image(p.backgroundImg, 0, 0, 1334, 650);
         p.clear();
-        p.image(p.backgroundImg, 0, 0, 1334, 650);
+        p.image(backgroundGraphics, 0, 0, 1334, 650);
 
         let agentCounts = p.getCountries().map((c) => { return c.places.map((place) => {return p.getPlaces()[p.createVector(place.points[0], place.points[1])].agents.length}).reduce((acc, cur) => acc + cur, 0)});
         for (let i = 0; i < countries.length; i++) {
@@ -279,26 +302,30 @@ let sketch = (p) => {
             let agentCount = agentCounts[i];
             let im = countryImages[country.iso_a3];
             if (im !== undefined) {
-                let alpha = agentCount / agentParams.agentSize * 255;
-                p.tint(255, alpha); 
-                // p.image(im, country.offsetX, country.offsetY - im.height + 5, im.width, im.height);
-                p.image(im, country.offsetX, (country.offsetY) - im.height + 5, im.width, im.height);
-                // backgroundGraphics.tint(255, alpha); 
-                // backgroundGraphics.image(im, country.offsetX, country.offsetY - im.height + 5, im.width, im.height);
+                let alpha = agentCount / agentParams.agentSize * 100;
+                if (countryPrev !== undefined && countryPrev.iso_a3 === country.iso_a3) { // && (countryCurrent === undefined || countryPrev.iso_a3 !== countryCurrent.iso_a3)
+                    countriesGraphics.tint(0, 0, 100, 100);     
+                    countryPrev = undefined;
+                }
+                else if (countryCurrent !== undefined && countryCurrent.iso_a3 === country.iso_a3)
+                    countriesGraphics.tint(0, 100, 100, 100);     
+                else
+                    countriesGraphics.tint(0, 0, 100, alpha); 
+                countriesGraphics.image(im, country.offsetX, country.offsetY - im.height + 5, im.width, im.height);
             }
                 
         }
-        // backgroundGraphics.tint(255, 255); 
-        p.push();
-        // applyMatrix(
-        //     1, 0, 
-        //     0, 1, width / 2, height / 2);
+        p.image(countriesGraphics, 0, 0, 1334, 650);
+        p.image(historyGraphics, 0, 0, 1334, 650);
+
+
         for (var i = 0; i < agents.length; i++) {
             var a = agents[i];
             a.move();
+            a.drawHistory();
             a.draw();
         }
-        p.pop();
+        
     }
 
     p.windowResized = function() {
@@ -448,6 +475,7 @@ let sketch = (p) => {
         // }
     };    
     
+
     p.collisionDetection = function (points, testX, testY) {
         var crossed = false;
         var times = 0;
@@ -473,33 +501,8 @@ let sketch = (p) => {
         }
         return crossed;
     };
-    collisionDetection = function (points, testX, testY) {
-        var crossed = false;
-        var times = 0;
-        // Double check the detection is within the widest bounds
-        for (var j = 0; j < points.length; j++) {
-            var pts = points[j];
-            var maxx = p.max(pts.map(function (pt) { return pt.x; }));
-            for (var i = 0; i < pts.length; i++) {
-                var p1 = pts[i];
-                var p2 = (i == pts.length - 1) ? pts[0] : pts[i + 1];
-                // Make floating, and jitter to avoid boundary issues with integers.
-                var x1 = parseFloat(p1.x) + 0.001, 
-                    y1 = parseFloat(p1.y) - 0.001, 
-                    x2 = parseFloat(p2.x) + 0.001, 
-                    y2 = parseFloat(p2.y) - 0.001;
-                console.log(x1, x2, testX, maxx)
-                if ((y1 < testY && y2 >= testY) || (y1 > testY && y2 <= testY)) {
-                    // console.log(x1, x2, testX, maxx)
-                    if ((x1 + x2) / 2.0 < testX && testX < maxx) {
-                        times++;
-                        crossed = !crossed;
-                    }
-                }
-            }
-        }
-        return crossed;
-    };    
+
+    
     p.getCountry = function (x, y) {
         var c = undefined;
         for (var i = 0; i < Object.keys(countries).length; i++) {
@@ -516,8 +519,17 @@ let sketch = (p) => {
     };
 
     p.mouseMoved = function () {
-        countryCurrent = p.getCountry(p.mouseX, p.mouseY);
-        // console.log(countryCurrent)
+        let cc = p.getCountry(p.mouseX, p.mouseY);
+        if (cc !== undefined) {
+            if (countryCurrent === undefined || cc.iso_a3 !== countryCurrent.iso_a3) {
+                countryPrev = countryCurrent;
+                countryCurrent = cc;
+            }
+        }
+        else {
+            countryPrev = countryCurrent;
+            countryCurrent = undefined;
+        }
     };
     p.mousePressed = function () {
         if (isRunning) {
