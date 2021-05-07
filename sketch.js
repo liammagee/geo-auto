@@ -31,7 +31,7 @@ let sketch = (p) => {
     let viralOptions = {
 		initialInfectionRate: 0.01,
         infectionRate: 0.01,
-        showTrail: ['path', 'tail', 'none']
+        showTrail: ['countries', 'path', 'tail', 'none']
 	};
     let coordinatePlaces = {};
     let agents = [];
@@ -296,25 +296,27 @@ let sketch = (p) => {
         p.clear();
         p.image(backgroundGraphics, 0, 0, 1334, 650);
 
-        let agentCounts = p.getCountries().map((c) => { return c.places.map((place) => {return p.getPlaces()[p.createVector(place.points[0], place.points[1])].agents.length}).reduce((acc, cur) => acc + cur, 0)});
-        for (let i = 0; i < countries.length; i++) {
-            let country = countries[i];
-            let agentCount = agentCounts[i];
-            let im = countryImages[country.iso_a3];
-            if (im !== undefined) {
-                let alpha = agentCount / agentParams.agentSize * 100;
-                if (countryPrev !== undefined && countryPrev.iso_a3 === country.iso_a3) { // && (countryCurrent === undefined || countryPrev.iso_a3 !== countryCurrent.iso_a3)
-                    countriesGraphics.tint(0, 0, 100, 100);     
-                    countryPrev = undefined;
+        if (viralOptions.showTrail == 'countries') {
+            let agentCounts = p.getCountries().map((c) => { return c.places.map((place) => {return p.getPlaces()[p.createVector(place.points[0], place.points[1])].agents.length}).reduce((acc, cur) => acc + cur, 0)});
+            for (let i = 0; i < countries.length; i++) {
+                let country = countries[i];
+                let agentCount = agentCounts[i];
+                let im = countryImages[country.iso_a3];
+                if (im !== undefined) {
+                    let alpha = agentCount / agentParams.agentSize * 100;
+                    if (countryPrev !== undefined && countryPrev.iso_a3 === country.iso_a3) { // && (countryCurrent === undefined || countryPrev.iso_a3 !== countryCurrent.iso_a3)
+                        countriesGraphics.tint(0, 0, 100, 100);     
+                        countryPrev = undefined;
+                    }
+                    else if (countryCurrent !== undefined && countryCurrent.iso_a3 === country.iso_a3)
+                        countriesGraphics.tint(0, 100, 100, 100);     
+                    else
+                        countriesGraphics.tint(0, 0, 100, alpha); 
+                    countriesGraphics.image(im, country.offsetX, country.offsetY - im.height + 5, im.width, im.height);
                 }
-                else if (countryCurrent !== undefined && countryCurrent.iso_a3 === country.iso_a3)
-                    countriesGraphics.tint(0, 100, 100, 100);     
-                else
-                    countriesGraphics.tint(0, 0, 100, alpha); 
-                countriesGraphics.image(im, country.offsetX, country.offsetY - im.height + 5, im.width, im.height);
             }
-                
         }
+
         p.image(countriesGraphics, 0, 0, 1334, 650);
         p.image(historyGraphics, 0, 0, 1334, 650);
 
